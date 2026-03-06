@@ -1,0 +1,122 @@
+{
+  "info": {
+    "name": "Debauch API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api"
+    }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discord_id\": \"123456789\",\n  \"username\": \"testuser\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/123456789"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Get Wallet",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/123456789/wallet"
+          }
+        },
+        {
+          "name": "Deposit",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users/123456789/wallet/deposit",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"1.00\",\n  \"tx_hash\": \"0xabc123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Withdraw",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users/123456789/wallet/withdraw",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"0.50\",\n  \"to_address\": \"0xYourWalletAddressHere\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Games",
+      "item": [
+        {
+          "name": "Coinflip",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/games/coinflip",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discord_id\": \"123456789\",\n  \"choice\": \"heads\",\n  \"amount\": \"0.10\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "House",
+      "item": [
+        {
+          "name": "Get House Balance",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/house"
+          }
+        },
+        {
+          "name": "Fund House",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/house/fund",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"10.00\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

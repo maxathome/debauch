@@ -1,0 +1,14 @@
+# API
+api/vendor/
+api/tmp/
+api/log/
+api/*.log
+api/db/*.sqlite3
+api/.env
+
+# Bot
+bot/node_modules/
+bot/.env
+
+# OS
+.DS_Store
