@@ -23,7 +23,7 @@ module.exports = {
         `1. Send USDC (Base network) to:\n\`${address}\`\n\n` +
         `2. In the memo/note field, include your Discord ID: \`${interaction.user.id}\`\n\n` +
         `3. Your balance will be credited after 1 confirmation (~2 seconds on Base).\n\n` +
-        `**Current balance:** $${parseFloat(wallet.balance_usdc).toFixed(4)} USDC\n\n` +
+        `**Current balance:** $${parseFloat(wallet.balance_usdc).toFixed(2)} USDC\n\n` +
         `_Min deposit: $0.10 USDC. Network fees are ~$0.003._`
       );
     } catch (err) {

@@ -26,6 +26,11 @@ module.exports = {
     return res.data;
   },
 
+  async getHouseBalance() {
+    const res = await client.get("/house");
+    return res.data;
+  },
+
   async coinflip(discordId, choice, amount) {
     const res = await client.post("/games/coinflip", { discord_id: discordId, choice, amount });
     return res.data;

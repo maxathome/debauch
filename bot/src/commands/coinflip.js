@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require("discord.js");
 const api = require("../api");
 
 const MIN_BET = 0.01;
-const MAX_BET = 1.00;
+const MAX_BET = 10.00;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -37,14 +37,18 @@ module.exports = {
 
       const coin = result.result === "heads" ? "HEADS" : "TAILS";
       const outcome = result.won
-        ? `**${interaction.user.username} wins $${parseFloat(result.payout).toFixed(4)} USDC!**`
-        : `**${interaction.user.username} loses $${parseFloat(result.amount).toFixed(4)} USDC.**`;
+        ? `**${interaction.user.username} wins $${parseFloat(result.payout).toFixed(2)} USDC!**`
+        : `**${interaction.user.username} loses $${parseFloat(result.amount).toFixed(2)} USDC.**`;
 
       await interaction.editReply(
         `${interaction.user} picked **${choice.toUpperCase()}** — the coin lands **${coin}**\n\n` +
-        `${outcome}\n` +
-        `Balance: $${parseFloat(result.balance_usdc).toFixed(4)} USDC`
+        `${outcome}`
       );
+
+      await interaction.followUp({
+        content: `Your balance: $${parseFloat(result.balance_usdc).toFixed(2)} USDC`,
+        ephemeral: true,
+      });
     } catch (err) {
       const msg = err.response?.data?.error || "Something went wrong. Check your balance.";
       await interaction.editReply(`Error: ${msg}`);

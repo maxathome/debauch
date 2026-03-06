@@ -28,7 +28,7 @@ module.exports = {
 
       await interaction.editReply(
         `**Withdrawal submitted!**\n` +
-        `Amount: $${parseFloat(result.amount_usdc).toFixed(4)} USDC\n` +
+        `Amount: $${parseFloat(result.amount_usdc).toFixed(2)} USDC\n` +
         `To: \`${result.to_address}\`\n` +
         `Status: ${result.status}\n\n` +
         `_Transaction will be sent within a few minutes._`

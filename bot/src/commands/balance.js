@@ -14,7 +14,7 @@ module.exports = {
       const wallet = await api.getWallet(interaction.user.id);
 
       await interaction.editReply(
-        `**Your Balance:** $${parseFloat(wallet.balance_usdc).toFixed(4)} USDC`
+        `**Your Balance:** $${parseFloat(wallet.balance_usdc).toFixed(2)} USDC`
       );
     } catch (err) {
       await interaction.editReply("Error fetching balance. Try again.");
