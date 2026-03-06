@@ -5,6 +5,7 @@ api/log/
 api/*.log
 api/db/*.sqlite3
 api/.env
+api/config/master.key
 
 # Bot
 bot/node_modules/
