@@ -17,6 +17,9 @@ module Api
     def deposit
       user = User.find_by!(discord_id: params[:discord_id])
       amount = BigDecimal(params[:amount].to_s)
+      tx_hash = params[:tx_hash]
+
+      return render json: { balance_usdc: user.balance.to_s, duplicate: true } if Transaction.exists?(tx_hash: tx_hash)
 
       ActiveRecord::Base.transaction do
         user.credit!(amount)
@@ -24,11 +27,35 @@ module Api
           amount_usdc: amount,
           tx_type: "deposit",
           status: "confirmed",
-          tx_hash: params[:tx_hash]
+          tx_hash: tx_hash
         )
       end
 
       render json: { balance_usdc: user.reload.balance.to_s }
+    end
+
+    # POST /api/users/:discord_id/wallet/donate
+    def donate
+      user = User.find_by!(discord_id: params[:discord_id])
+      amount = BigDecimal(params[:amount].to_s)
+
+      ActiveRecord::Base.transaction do
+        user.debit!(amount)
+        HouseBalance.credit!(amount)
+        user.transactions.create!(
+          amount_usdc: amount,
+          tx_type: "donation",
+          status: "confirmed",
+          tx_hash: nil
+        )
+      end
+
+      render json: {
+        balance_usdc: user.reload.balance.to_s,
+        house_balance_usdc: HouseBalance.instance.balance_usdc.to_s
+      }
+    rescue RuntimeError => e
+      render json: { error: e.message }, status: :unprocessable_entity
     end
 
     # POST /api/users/:discord_id/wallet/withdraw

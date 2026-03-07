@@ -11,6 +11,26 @@ module.exports = {
     return res.data;
   },
 
+  async registerWallet(discordId, ethAddress) {
+    const res = await client.post(`/users/${discordId}/register_wallet`, { eth_address: ethAddress });
+    return res.data;
+  },
+
+  async getUserByWallet(ethAddress) {
+    const res = await client.get(`/users/by_wallet/${ethAddress}`);
+    return res.data;
+  },
+
+  async createUnknownDeposit(senderAddress, amountUsdc, txHash, blockNumber) {
+    const res = await client.post("/admin/unknown_deposits", {
+      sender_address: senderAddress,
+      amount_usdc: amountUsdc,
+      tx_hash: txHash,
+      block_number: blockNumber,
+    });
+    return res.data;
+  },
+
   async getWallet(discordId) {
     const res = await client.get(`/users/${discordId}/wallet`);
     return res.data;
@@ -23,6 +43,11 @@ module.exports = {
 
   async withdraw(discordId, amount, toAddress) {
     const res = await client.post(`/users/${discordId}/wallet/withdraw`, { amount, to_address: toAddress });
+    return res.data;
+  },
+
+  async donateToHouse(discordId, amount) {
+    const res = await client.post(`/users/${discordId}/wallet/donate`, { amount });
     return res.data;
   },
 

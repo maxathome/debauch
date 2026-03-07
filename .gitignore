@@ -10,6 +10,7 @@ api/config/master.key
 # Bot
 bot/node_modules/
 bot/.env
+bot/data/
 
 # OS
 .DS_Store
