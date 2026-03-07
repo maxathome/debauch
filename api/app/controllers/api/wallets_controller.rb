@@ -1,5 +1,8 @@
 module Api
   class WalletsController < ApplicationController
+    MIN_DONATION = BigDecimal("0.01")
+    MAX_DONATION = BigDecimal("100.00")
+    MIN_WITHDRAWAL = BigDecimal("0.01")
     # GET /api/users/:platform_user_id/wallet
     def show
       user = User.find_by!(platform_user_id: params[:platform_user_id])
@@ -39,6 +42,8 @@ module Api
       user = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)
 
+      return render json: { error: "Donation must be between $#{MIN_DONATION} and $#{MAX_DONATION} USDC" }, status: :unprocessable_entity unless amount.between?(MIN_DONATION, MAX_DONATION)
+
       ActiveRecord::Base.transaction do
         user.debit!(amount)
         HouseBalance.credit!(amount)
@@ -63,6 +68,9 @@ module Api
       user = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)
       to_address = params[:to_address]
+
+      return render json: { error: "Withdrawal must be at least $#{MIN_WITHDRAWAL} USDC" }, status: :unprocessable_entity unless amount >= MIN_WITHDRAWAL
+      return render json: { error: "Invalid wallet address" }, status: :unprocessable_entity unless to_address&.match?(/\A0x[0-9a-fA-F]{40}\z/)
 
       ActiveRecord::Base.transaction do
         user.debit!(amount)

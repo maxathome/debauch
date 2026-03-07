@@ -19,7 +19,13 @@ module Api
 
     def register_wallet
       user = User.find_by!(platform_user_id: params[:platform_user_id])
-      user.update!(eth_address: params[:eth_address].downcase)
+      eth_address = params[:eth_address].to_s
+
+      unless eth_address.match?(/\A0x[0-9a-fA-F]{40}\z/)
+        return render json: { error: "Invalid wallet address" }, status: :unprocessable_entity
+      end
+
+      user.update!(eth_address: eth_address.downcase)
       render json: user_json(user)
     end
 
