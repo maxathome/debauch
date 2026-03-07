@@ -14,7 +14,8 @@ Rails.application.routes.draw do
     post "users/:discord_id/wallet/deposit",  to: "wallets#deposit"
     post "users/:discord_id/wallet/withdraw", to: "wallets#withdraw"
 
-    post "games/coinflip", to: "games#coinflip"
+    post "games/coinflip",  to: "games#coinflip"
+    post "games/roulette",  to: "games#roulette"
 
     get  "house",      to: "house#show"
     post "house/fund", to: "house#fund"

@@ -35,4 +35,14 @@ module.exports = {
     const res = await client.post("/games/coinflip", { discord_id: discordId, choice, amount });
     return res.data;
   },
+
+  async roulette(discordId, betType, amount, betValue = null) {
+    const res = await client.post("/games/roulette", {
+      discord_id: discordId,
+      bet_type: betType,
+      amount,
+      bet_value: betValue,
+    });
+    return res.data;
+  },
 };
