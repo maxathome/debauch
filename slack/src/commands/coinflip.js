@@ -1,39 +1,37 @@
 const api = require("../api");
+const b = require("../blocks");
 
 // Usage: /coinflip <heads|tails> <amount>
-// Example: /coinflip heads 0.50
-
-const MIN_BET = 0.01;
-const MAX_BET = 10.00;
 
 module.exports = async function coinflip(req, res) {
   const { user_id, user_name, text } = req.body;
   const args = (text || "").trim().split(/\s+/);
   const choice = args[0]?.toLowerCase();
-  const amount = parseFloat(args[1]);
+  const amount = args[1];
 
-  if (!["heads", "tails"].includes(choice)) {
-    return res.json({ response_type: "ephemeral", text: "Usage: `/coinflip <heads|tails> <amount>`\nExample: `/coinflip heads 0.50`" });
-  }
-  if (!amount || isNaN(amount) || amount < MIN_BET || amount > MAX_BET) {
-    return res.json({ response_type: "ephemeral", text: `Bet must be between $${MIN_BET} and $${MAX_BET} USDC.` });
+  if (!["heads", "tails"].includes(choice) || !amount) {
+    return res.json(b.error("Usage: `/coinflip <heads|tails> <amount>`  —  e.g. `/coinflip heads 0.50`"));
   }
 
   try {
     await api.getOrCreateUser(user_id, user_name);
     const result = await api.coinflip(user_id, choice, amount);
 
-    const coin = result.result === "heads" ? "HEADS" : "TAILS";
-    const outcome = result.won
-      ? `*${user_name} wins $${parseFloat(result.payout).toFixed(2)} USDC!*`
-      : `*${user_name} loses $${parseFloat(result.amount).toFixed(2)} USDC.*`;
+    const coin = result.result === "heads" ? "🟡 HEADS" : "⚫ TAILS";
+    const won = result.won;
+    const outcomeText = won
+      ? `🎉  *${user_name} wins $${parseFloat(result.payout).toFixed(2)} USDC!*`
+      : `💸  *${user_name} loses $${parseFloat(result.amount).toFixed(2)} USDC.*`;
+    const fallback = `${user_name} flipped ${choice} — landed ${result.result}. ${won ? "Win!" : "Loss."}`;
 
-    res.json({
-      response_type: "in_channel",
-      text: `${user_name} picked *${choice.toUpperCase()}* — the coin lands *${coin}*\n\n${outcome}`,
-    });
+    res.json(b.inChannel([
+      b.header("🪙", "Coin Flip"),
+      b.divider(),
+      b.text(`<@${user_id}> picked *${choice.toUpperCase()}* — the coin lands *${coin}*`),
+      b.text(outcomeText),
+    ], fallback));
   } catch (err) {
     const msg = err.response?.data?.error || "Something went wrong. Check your balance.";
-    res.json({ response_type: "ephemeral", text: `Error: ${msg}` });
+    res.json(b.error(msg));
   }
 };

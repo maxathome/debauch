@@ -1,22 +1,27 @@
 const api = require("../api");
+const b = require("../blocks");
 
 // Usage: /donate <amount>
-// Example: /donate 5.00
 
 module.exports = async function donate(req, res) {
   const { user_id, user_name, text } = req.body;
-  const amount = parseFloat((text || "").trim());
+  const amount = (text || "").trim();
 
-  if (!amount || isNaN(amount)) {
-    return res.json({ response_type: "ephemeral", text: "Usage: `/donate <amount>`\nExample: `/donate 5.00`" });
+  if (!amount) {
+    return res.json(b.error("Usage: `/donate <amount>`  —  e.g. `/donate 5.00`"));
   }
 
   try {
     await api.getOrCreateUser(user_id, user_name);
     await api.donateToHouse(user_id, amount);
-    res.json({ response_type: "in_channel", text: `${user_name} just donated *$${amount.toFixed(2)} USDC* to the house! The games live on!` });
+    const formatted = `$${parseFloat(amount).toFixed(2)} USDC`;
+
+    res.json(b.inChannel([
+      b.header("🎁", `${user_name} donated ${formatted} to the house!`),
+      b.text("The games live on! 🎰"),
+    ], `${user_name} donated ${formatted} to the house!`));
   } catch (err) {
     const msg = err.response?.data?.error || "Something went wrong. Check your balance.";
-    res.json({ response_type: "ephemeral", text: `Error: ${msg}` });
+    res.json(b.error(msg));
   }
 };
