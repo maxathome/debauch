@@ -9,41 +9,41 @@ features:
     always_online: false
   slash_commands:
     - command: /balance
-      url: https://YOUR_URL/slack/balance
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/balance
       description: Check your Debauch wallet balance
       should_escape: false
 
     - command: /coinflip
-      url: https://YOUR_URL/slack/coinflip
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/coinflip
       description: "Flip a coin. Win 2x your bet or lose it all."
       usage_hint: "<heads|tails> <amount>"
       should_escape: false
 
     - command: /roulette
-      url: https://YOUR_URL/slack/roulette
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/roulette
       description: "Spin the roulette wheel. Even bets pay 1:1, number bets pay 35:1."
       usage_hint: "<red|black|odd|even|low|high|number> <amount> [0-36]"
       should_escape: false
 
     - command: /deposit
-      url: https://YOUR_URL/slack/deposit
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/deposit
       description: Show deposit instructions or register your wallet address
       usage_hint: "[register <0x...>]"
       should_escape: false
 
     - command: /withdraw
-      url: https://YOUR_URL/slack/withdraw
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/withdraw
       description: Withdraw USDC to your wallet
       usage_hint: "<amount> <0x...>"
       should_escape: false
 
     - command: /house
-      url: https://YOUR_URL/slack/house
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/house
       description: Check the house balance
       should_escape: false
 
     - command: /donate
-      url: https://YOUR_URL/slack/donate
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/donate
       description: Donate USDC to the house to keep the games running
       usage_hint: "<amount>"
       should_escape: false
