@@ -1,0 +1,56 @@
+display_information:
+  name: Debauch
+  description: Gamble small amounts of USDC with your friends
+  background_color: "#1a1a2e"
+
+features:
+  slash_commands:
+    - command: /balance
+      url: https://YOUR_URL/slack/balance
+      description: Check your Debauch wallet balance
+      should_escape: false
+
+    - command: /coinflip
+      url: https://YOUR_URL/slack/coinflip
+      description: "Flip a coin. Win 2x your bet or lose it all."
+      usage_hint: "<heads|tails> <amount>"
+      should_escape: false
+
+    - command: /roulette
+      url: https://YOUR_URL/slack/roulette
+      description: "Spin the roulette wheel. Even bets pay 1:1, number bets pay 35:1."
+      usage_hint: "<red|black|odd|even|low|high|number> <amount> [0-36]"
+      should_escape: false
+
+    - command: /deposit
+      url: https://YOUR_URL/slack/deposit
+      description: Show deposit instructions or register your wallet address
+      usage_hint: "[register <0x...>]"
+      should_escape: false
+
+    - command: /withdraw
+      url: https://YOUR_URL/slack/withdraw
+      description: Withdraw USDC to your wallet
+      usage_hint: "<amount> <0x...>"
+      should_escape: false
+
+    - command: /house
+      url: https://YOUR_URL/slack/house
+      description: Check the house balance
+      should_escape: false
+
+    - command: /donate
+      url: https://YOUR_URL/slack/donate
+      description: Donate USDC to the house to keep the games running
+      usage_hint: "<amount>"
+      should_escape: false
+
+oauth_config:
+  scopes:
+    bot:
+      - commands
+
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
