@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const verifySlack = require("./middleware/verify-slack");
+const verifyChannel = require("./middleware/verify-channel");
 
 const balance  = require("./commands/balance");
 const coinflip = require("./commands/coinflip");
@@ -19,6 +20,7 @@ app.use(express.urlencoded({
 }));
 
 app.use(verifySlack);
+app.use(verifyChannel);
 
 app.post("/slack/balance",  balance);
 app.post("/slack/coinflip", coinflip);
