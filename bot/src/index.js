@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits, Collection, REST, Routes } = require("discord.js");
+const { Client, GatewayIntentBits, Collection, REST, Routes, MessageFlags } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const depositPoller = require("./services/deposit-poller");
@@ -14,7 +14,7 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
-client.once("ready", () => {
+client.once("clientReady", () => {
   console.log(`Logged in as ${client.user.tag}`);
   depositPoller.start();
 });
@@ -29,13 +29,19 @@ client.on("interactionCreate", async (interaction) => {
     await command.execute(interaction);
   } catch (err) {
     console.error(err);
-    const reply = { content: "Something went wrong.", ephemeral: true };
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(reply);
-    } else {
-      await interaction.reply(reply);
+    const reply = { content: "Something went wrong.", flags: MessageFlags.Ephemeral };
+    try {
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(reply);
+      } else {
+        await interaction.reply(reply);
+      }
+    } catch (replyErr) {
+      console.error("[bot] Failed to send error reply:", replyErr.message);
     }
   }
 });
+
+client.on("error", (err) => console.error("[bot] Client error:", err.message));
 
 client.login(process.env.DISCORD_TOKEN);

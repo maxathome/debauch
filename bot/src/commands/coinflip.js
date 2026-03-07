@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const api = require("../api");
 
 const MIN_BET = 0.01;
@@ -47,7 +47,7 @@ module.exports = {
 
       await interaction.followUp({
         content: `Your balance: $${parseFloat(result.balance_usdc).toFixed(2)} USDC`,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     } catch (err) {
       const msg = err.response?.data?.error || "Something went wrong. Check your balance.";
