@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const api = require("../api");
 
 module.exports = {
@@ -7,7 +7,7 @@ module.exports = {
     .setDescription("Check your Debauch wallet balance"),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
       await api.getOrCreateUser(interaction.user.id, interaction.user.username);
