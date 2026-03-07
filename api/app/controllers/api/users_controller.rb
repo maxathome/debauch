@@ -6,7 +6,7 @@ module Api
     end
 
     def show
-      user = User.find_by!(discord_id: params[:discord_id])
+      user = User.find_by!(platform_user_id: params[:platform_user_id])
       render json: user_json(user)
     end
 
@@ -18,13 +18,13 @@ module Api
     end
 
     def register_wallet
-      user = User.find_by!(discord_id: params[:discord_id])
+      user = User.find_by!(platform_user_id: params[:platform_user_id])
       user.update!(eth_address: params[:eth_address].downcase)
       render json: user_json(user)
     end
 
     def create
-      user = User.find_or_initialize_by(discord_id: params[:discord_id])
+      user = User.find_or_initialize_by(platform_user_id: params[:platform_user_id])
       user.username = params[:username]
 
       if user.save
@@ -39,7 +39,7 @@ module Api
     def user_json(user)
       {
         id: user.id,
-        discord_id: user.discord_id,
+        platform_user_id: user.platform_user_id,
         username: user.username,
         eth_address: user.eth_address,
         balance_usdc: user.balance.to_s

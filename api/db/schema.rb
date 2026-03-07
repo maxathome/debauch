@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_07_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_07_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -69,12 +69,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_07_000001) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "discord_id"
+    t.string "platform_user_id"
     t.string "username"
     t.string "eth_address"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["discord_id"], name: "index_users_on_discord_id", unique: true
+    t.index ["platform_user_id"], name: "index_users_on_platform_user_id", unique: true
   end
 
   create_table "wallets", force: :cascade do |t|

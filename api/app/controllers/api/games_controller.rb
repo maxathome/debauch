@@ -8,7 +8,7 @@ module Api
     VALID_ROULETTE_BETS = %w[number red black odd even low high].freeze
 
     def roulette
-      user      = User.find_by!(discord_id: params[:discord_id])
+      user      = User.find_by!(platform_user_id: params[:platform_user_id])
       amount    = BigDecimal(params[:amount].to_s)
       bet_type  = params[:bet_type].to_s.downcase
       bet_value = params[:bet_value]&.to_s&.downcase
@@ -73,7 +73,7 @@ module Api
     end
 
     def coinflip
-      user   = User.find_by!(discord_id: params[:discord_id])
+      user   = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)
       choice = params[:choice].to_s.downcase
 

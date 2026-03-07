@@ -6,13 +6,13 @@ const client = axios.create({
 });
 
 module.exports = {
-  async getOrCreateUser(discordId, username) {
-    const res = await client.post("/users", { discord_id: discordId, username });
+  async getOrCreateUser(platformUserId, username) {
+    const res = await client.post("/users", { platform_user_id: platformUserId, username });
     return res.data;
   },
 
-  async registerWallet(discordId, ethAddress) {
-    const res = await client.post(`/users/${discordId}/register_wallet`, { eth_address: ethAddress });
+  async registerWallet(platformUserId, ethAddress) {
+    const res = await client.post(`/users/${platformUserId}/register_wallet`, { eth_address: ethAddress });
     return res.data;
   },
 
@@ -31,23 +31,23 @@ module.exports = {
     return res.data;
   },
 
-  async getWallet(discordId) {
-    const res = await client.get(`/users/${discordId}/wallet`);
+  async getWallet(platformUserId) {
+    const res = await client.get(`/users/${platformUserId}/wallet`);
     return res.data;
   },
 
-  async deposit(discordId, amount, txHash) {
-    const res = await client.post(`/users/${discordId}/wallet/deposit`, { amount, tx_hash: txHash });
+  async deposit(platformUserId, amount, txHash) {
+    const res = await client.post(`/users/${platformUserId}/wallet/deposit`, { amount, tx_hash: txHash });
     return res.data;
   },
 
-  async withdraw(discordId, amount, toAddress) {
-    const res = await client.post(`/users/${discordId}/wallet/withdraw`, { amount, to_address: toAddress });
+  async withdraw(platformUserId, amount, toAddress) {
+    const res = await client.post(`/users/${platformUserId}/wallet/withdraw`, { amount, to_address: toAddress });
     return res.data;
   },
 
-  async donateToHouse(discordId, amount) {
-    const res = await client.post(`/users/${discordId}/wallet/donate`, { amount });
+  async donateToHouse(platformUserId, amount) {
+    const res = await client.post(`/users/${platformUserId}/wallet/donate`, { amount });
     return res.data;
   },
 
@@ -56,14 +56,14 @@ module.exports = {
     return res.data;
   },
 
-  async coinflip(discordId, choice, amount) {
-    const res = await client.post("/games/coinflip", { discord_id: discordId, choice, amount });
+  async coinflip(platformUserId, choice, amount) {
+    const res = await client.post("/games/coinflip", { platform_user_id: platformUserId, choice, amount });
     return res.data;
   },
 
-  async roulette(discordId, betType, amount, betValue = null) {
+  async roulette(platformUserId, betType, amount, betValue = null) {
     const res = await client.post("/games/roulette", {
-      discord_id: discordId,
+      platform_user_id: platformUserId,
       bet_type: betType,
       amount,
       bet_value: betValue,

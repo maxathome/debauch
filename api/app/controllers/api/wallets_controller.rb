@@ -1,8 +1,8 @@
 module Api
   class WalletsController < ApplicationController
-    # GET /api/users/:discord_id/wallet
+    # GET /api/users/:platform_user_id/wallet
     def show
-      user = User.find_by!(discord_id: params[:discord_id])
+      user = User.find_by!(platform_user_id: params[:platform_user_id])
       render json: {
         balance_usdc: user.balance.to_s,
         eth_address: user.eth_address,
@@ -12,10 +12,10 @@ module Api
       }
     end
 
-    # POST /api/users/:discord_id/wallet/deposit
+    # POST /api/users/:platform_user_id/wallet/deposit
     # Called after confirming an on-chain deposit
     def deposit
-      user = User.find_by!(discord_id: params[:discord_id])
+      user = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)
       tx_hash = params[:tx_hash]
 
@@ -34,9 +34,9 @@ module Api
       render json: { balance_usdc: user.reload.balance.to_s }
     end
 
-    # POST /api/users/:discord_id/wallet/donate
+    # POST /api/users/:platform_user_id/wallet/donate
     def donate
-      user = User.find_by!(discord_id: params[:discord_id])
+      user = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)
 
       ActiveRecord::Base.transaction do
@@ -58,9 +58,9 @@ module Api
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
-    # POST /api/users/:discord_id/wallet/withdraw
+    # POST /api/users/:platform_user_id/wallet/withdraw
     def withdraw
-      user = User.find_by!(discord_id: params[:discord_id])
+      user = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)
       to_address = params[:to_address]
 

@@ -8,14 +8,14 @@ Rails.application.routes.draw do
   namespace :api do
     get  "users",                              to: "users#index"
     get  "users/by_wallet/:eth_address",       to: "users#by_wallet"
-    get  "users/:discord_id",                  to: "users#show"
+    get  "users/:platform_user_id",                  to: "users#show"
     post "users",                              to: "users#create"
-    post "users/:discord_id/register_wallet",  to: "users#register_wallet"
+    post "users/:platform_user_id/register_wallet",  to: "users#register_wallet"
 
-    get  "users/:discord_id/wallet",          to: "wallets#show"
-    post "users/:discord_id/wallet/deposit",  to: "wallets#deposit"
-    post "users/:discord_id/wallet/withdraw", to: "wallets#withdraw"
-    post "users/:discord_id/wallet/donate",   to: "wallets#donate"
+    get  "users/:platform_user_id/wallet",          to: "wallets#show"
+    post "users/:platform_user_id/wallet/deposit",  to: "wallets#deposit"
+    post "users/:platform_user_id/wallet/withdraw", to: "wallets#withdraw"
+    post "users/:platform_user_id/wallet/donate",   to: "wallets#donate"
 
     post "games/coinflip",  to: "games#coinflip"
     post "games/roulette",  to: "games#roulette"
