@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_06_210000) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_07_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -53,6 +53,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_06_210000) do
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
 
+  create_table "unknown_deposits", force: :cascade do |t|
+    t.string "sender_address", null: false
+    t.decimal "amount_usdc", precision: 18, scale: 6, null: false
+    t.string "tx_hash", null: false
+    t.integer "block_number", null: false
+    t.string "status", default: "pending", null: false
+    t.string "resolved_to"
+    t.bigint "resolved_user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["resolved_user_id"], name: "index_unknown_deposits_on_resolved_user_id"
+    t.index ["status"], name: "index_unknown_deposits_on_status"
+    t.index ["tx_hash"], name: "index_unknown_deposits_on_tx_hash", unique: true
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "discord_id"
     t.string "username"
@@ -73,5 +88,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_06_210000) do
   add_foreign_key "game_entries", "games"
   add_foreign_key "game_entries", "users"
   add_foreign_key "transactions", "users"
+  add_foreign_key "unknown_deposits", "users", column: "resolved_user_id"
   add_foreign_key "wallets", "users"
 end

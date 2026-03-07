@@ -10,6 +10,19 @@ module Api
       render json: user_json(user)
     end
 
+    def by_wallet
+      user = User.find_by!(eth_address: params[:eth_address].downcase)
+      render json: user_json(user)
+    rescue ActiveRecord::RecordNotFound
+      render json: { error: "No user registered with that wallet address" }, status: :not_found
+    end
+
+    def register_wallet
+      user = User.find_by!(discord_id: params[:discord_id])
+      user.update!(eth_address: params[:eth_address].downcase)
+      render json: user_json(user)
+    end
+
     def create
       user = User.find_or_initialize_by(discord_id: params[:discord_id])
       user.username = params[:username]
