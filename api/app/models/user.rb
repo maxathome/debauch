@@ -4,7 +4,7 @@ class User < ApplicationRecord
   has_many :game_entries
   has_many :games, through: :game_entries
 
-  validates :discord_id, presence: true, uniqueness: true
+  validates :platform_user_id, presence: true, uniqueness: true
   validates :username, presence: true
 
   after_create :create_wallet

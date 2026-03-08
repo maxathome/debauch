@@ -7,14 +7,17 @@ module Api
     RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36].freeze
     VALID_ROULETTE_BETS = %w[number red black odd even low high].freeze
 
+    MIN_BET = BigDecimal("0.01")
+    MAX_BET = BigDecimal("10.00")
+
     def roulette
-      user      = User.find_by!(discord_id: params[:discord_id])
+      user      = User.find_by!(platform_user_id: params[:platform_user_id])
       amount    = BigDecimal(params[:amount].to_s)
       bet_type  = params[:bet_type].to_s.downcase
       bet_value = params[:bet_value]&.to_s&.downcase
 
       return render json: { error: "Invalid bet type" }, status: :unprocessable_entity unless VALID_ROULETTE_BETS.include?(bet_type)
-      return render json: { error: "Bet must be greater than 0" }, status: :unprocessable_entity unless amount > 0
+      return render json: { error: "Bet must be between $#{MIN_BET} and $#{MAX_BET} USDC" }, status: :unprocessable_entity unless amount.between?(MIN_BET, MAX_BET)
 
       if bet_type == "number"
         return render json: { error: "bet_value required for number bets" }, status: :unprocessable_entity if bet_value.nil?
@@ -73,12 +76,12 @@ module Api
     end
 
     def coinflip
-      user   = User.find_by!(discord_id: params[:discord_id])
+      user   = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)
       choice = params[:choice].to_s.downcase
 
       return render json: { error: "Choice must be heads or tails" }, status: :unprocessable_entity unless VALID_CHOICES.include?(choice)
-      return render json: { error: "Bet must be greater than 0" }, status: :unprocessable_entity unless amount > 0
+      return render json: { error: "Bet must be between $#{MIN_BET} and $#{MAX_BET} USDC" }, status: :unprocessable_entity unless amount.between?(MIN_BET, MAX_BET)
       return render json: { error: "House is out of funds — games are closed" }, status: :unprocessable_entity unless HouseBalance.can_cover?(amount)
 
       result = SecureRandom.random_number(2) == 0 ? "heads" : "tails"

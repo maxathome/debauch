@@ -21,7 +21,7 @@ module Api
 
       def assign_to_user
         deposit = UnknownDeposit.pending.find(params[:id])
-        user = User.find_by!(discord_id: params[:discord_id])
+        user = User.find_by!(platform_user_id: params[:platform_user_id])
 
         ActiveRecord::Base.transaction do
           user.credit!(deposit.amount_usdc)

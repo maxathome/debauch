@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const client = axios.create({
-  baseURL: process.env.API_BASE_URL || "http://localhost:3000/api",
+  baseURL: process.env.API_BASE_URL || "http://localhost:3001/api",
   headers: { "Content-Type": "application/json" },
 });
 
@@ -13,21 +13,6 @@ module.exports = {
 
   async registerWallet(platformUserId, ethAddress) {
     const res = await client.post(`/users/${platformUserId}/register_wallet`, { eth_address: ethAddress });
-    return res.data;
-  },
-
-  async getUserByWallet(ethAddress) {
-    const res = await client.get(`/users/by_wallet/${ethAddress}`);
-    return res.data;
-  },
-
-  async createUnknownDeposit(senderAddress, amountUsdc, txHash, blockNumber) {
-    const res = await client.post("/admin/unknown_deposits", {
-      sender_address: senderAddress,
-      amount_usdc: amountUsdc,
-      tx_hash: txHash,
-      block_number: blockNumber,
-    });
     return res.data;
   },
 

@@ -45,7 +45,7 @@ async function poll(provider, usdc, decimals) {
     try {
       const user = await api.getUserByWallet(sender);
       // Known user — credit their balance
-      await api.deposit(user.discord_id, amount.toString(), txHash);
+      await api.deposit(user.platform_user_id, amount.toString(), txHash);
       console.log(`[poller] Credited $${amount} to ${user.username}`);
     } catch (err) {
       if (err.response?.status === 404) {
