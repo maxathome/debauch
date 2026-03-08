@@ -75,6 +75,64 @@ module Api
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
+    def picknum
+      player1 = User.find_by!(platform_user_id: params[:player1_id])
+      player2 = User.find_by!(platform_user_id: params[:player2_id])
+      amount    = BigDecimal(params[:amount].to_s)
+      p1_number = Integer(params[:player1_number])
+      p2_number = Integer(params[:player2_number])
+
+      return render json: { error: "Bet must be between $#{MIN_BET} and $#{MAX_BET} USDC" }, status: :unprocessable_entity unless amount.between?(MIN_BET, MAX_BET)
+      return render json: { error: "Number must be between 1 and 10" }, status: :unprocessable_entity unless p1_number.between?(1, 10) && p2_number.between?(1, 10)
+
+      target      = SecureRandom.random_number(10) + 1
+      p1_distance = (p1_number - target).abs
+      p2_distance = (p2_number - target).abs
+      pot         = amount * 2
+
+      ActiveRecord::Base.transaction do
+        player1.debit!(amount)
+        player2.debit!(amount)
+
+        if p1_distance == p2_distance
+          player1.credit!(amount)
+          player2.credit!(amount)
+          player1.transactions.create!(amount_usdc: amount, tx_type: "game_tie", status: "confirmed", tx_hash: nil)
+          player2.transactions.create!(amount_usdc: amount, tx_type: "game_tie", status: "confirmed", tx_hash: nil)
+        elsif p1_distance < p2_distance
+          player1.credit!(pot)
+          player1.transactions.create!(amount_usdc: pot,    tx_type: "game_win",  status: "confirmed", tx_hash: nil)
+          player2.transactions.create!(amount_usdc: amount, tx_type: "game_loss", status: "confirmed", tx_hash: nil)
+        else
+          player2.credit!(pot)
+          player1.transactions.create!(amount_usdc: amount, tx_type: "game_loss", status: "confirmed", tx_hash: nil)
+          player2.transactions.create!(amount_usdc: pot,    tx_type: "game_win",  status: "confirmed", tx_hash: nil)
+        end
+      end
+
+      winner = if p1_distance == p2_distance then "tie"
+               elsif p1_distance < p2_distance then "player1"
+               else "player2"
+               end
+
+      render json: {
+        target:           target,
+        player1_number:   p1_number,
+        player2_number:   p2_number,
+        player1_distance: p1_distance,
+        player2_distance: p2_distance,
+        winner:           winner,
+        amount:           amount.to_s,
+        payout:           winner == "tie" ? "0.0" : pot.to_s,
+        player1_balance:  player1.reload.balance.to_s,
+        player2_balance:  player2.reload.balance.to_s,
+      }
+    rescue ArgumentError
+      render json: { error: "Invalid amount or number" }, status: :unprocessable_entity
+    rescue RuntimeError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
     def coinflip
       user   = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)

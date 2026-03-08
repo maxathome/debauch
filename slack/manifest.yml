@@ -19,6 +19,11 @@ features:
       usage_hint: "<heads|tails> <amount>"
       should_escape: false
 
+    - command: /picknum
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/picknum
+      description: "Pick a number 1-10. Closest to the target wins the pot."
+      should_escape: false
+
     - command: /deposit
       url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/deposit
       description: Show deposit instructions or register your wallet address
@@ -47,6 +52,7 @@ oauth_config:
     bot:
       - commands
       - chat:write
+      - users:read
 
 settings:
   interactivity:

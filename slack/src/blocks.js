@@ -85,8 +85,8 @@ function input(blockId, label, actionId, placeholder, initialValue = null) {
   };
 }
 
-function modal(callbackId, title, submitLabel, blocks) {
-  return {
+function modal(callbackId, title, submitLabel, blocks, privateMetadata = null) {
+  const view = {
     type: "modal",
     callback_id: callbackId,
     title: { type: "plain_text", text: title, emoji: true },
@@ -94,6 +94,8 @@ function modal(callbackId, title, submitLabel, blocks) {
     close: { type: "plain_text", text: "Cancel", emoji: true },
     blocks,
   };
+  if (privateMetadata) view.private_metadata = privateMetadata;
+  return view;
 }
 
 module.exports = { header, divider, text, fields, context, image, textWithThumbnail, actions, button, staticSelect, input, modal, ephemeral, inChannel, error };

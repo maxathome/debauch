@@ -18,6 +18,7 @@ Rails.application.routes.draw do
     post "users/:platform_user_id/wallet/donate",   to: "wallets#donate"
 
     post "games/coinflip",  to: "games#coinflip"
+    post "games/picknum",   to: "games#picknum"
     post "games/roulette",  to: "games#roulette"
 
     get  "house",      to: "house#show"

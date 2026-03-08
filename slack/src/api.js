@@ -41,6 +41,17 @@ module.exports = {
     return res.data;
   },
 
+  async picknum(player1Id, player2Id, player1Number, player2Number, amount) {
+    const res = await client.post("/games/picknum", {
+      player1_id: player1Id,
+      player2_id: player2Id,
+      player1_number: player1Number,
+      player2_number: player2Number,
+      amount,
+    });
+    return res.data;
+  },
+
   async coinflip(platformUserId, choice, amount) {
     const res = await client.post("/games/coinflip", { platform_user_id: platformUserId, choice, amount });
     return res.data;

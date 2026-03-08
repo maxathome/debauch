@@ -2,8 +2,6 @@ require("dotenv").config();
 const { Client, GatewayIntentBits, Collection, REST, Routes, MessageFlags } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
-const depositPoller = require("./services/deposit-poller");
-
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
@@ -16,7 +14,6 @@ for (const file of commandFiles) {
 
 client.once("clientReady", () => {
   console.log(`Logged in as ${client.user.tag}`);
-  depositPoller.start();
 });
 
 client.on("interactionCreate", async (interaction) => {
