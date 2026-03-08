@@ -7,9 +7,7 @@ module.exports = async function house(req, res) {
     const balance = `$${parseFloat(data.balance_usdc).toFixed(2)} USDC`;
 
     res.json(b.inChannel([
-      b.header("🏦", "House Balance"),
-      b.divider(),
-      b.text(`*${balance}*`),
+      b.text(`🏦 *House Balance*\n${balance}`),
     ], `House balance: ${balance}`));
   } catch (err) {
     res.json(b.error("Error fetching house balance. Try again."));

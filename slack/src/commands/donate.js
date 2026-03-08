@@ -17,8 +17,11 @@ module.exports = async function donate(req, res) {
     const formatted = `$${parseFloat(amount).toFixed(2)} USDC`;
 
     res.json(b.inChannel([
-      b.header("🎁", `${user_name} donated ${formatted} to the house!`),
-      b.text("The games live on! 🎰"),
+      b.textWithThumbnail(
+        `🎁 *${user_name} donated ${formatted} to the house!*\nThe games live on! 🎰`,
+        "https://media.giphy.com/media/RrVzUOXldFe8M/giphy.gif",
+        "excited"
+      ),
     ], `${user_name} donated ${formatted} to the house!`));
   } catch (err) {
     const msg = err.response?.data?.error || "Something went wrong. Check your balance.";

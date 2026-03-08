@@ -1,33 +1,29 @@
+const axios = require("axios");
 const api = require("../api");
 const b = require("../blocks");
 
-// Usage: /withdraw <amount> <address>
-
 module.exports = async function withdraw(req, res) {
-  const { user_id, user_name, text } = req.body;
-  const args = (text || "").trim().split(/\s+/);
-  const amount = args[0];
-  const address = args[1];
-
-  if (!amount || !address) {
-    return res.json(b.error("Usage: `/withdraw <amount> <address>`  —  e.g. `/withdraw 5.00 0xABC...`"));
-  }
+  const { user_id, user_name, trigger_id } = req.body;
 
   try {
     await api.getOrCreateUser(user_id, user_name);
-    const result = await api.withdraw(user_id, amount, address);
+    const wallet = await api.getWallet(user_id);
+    const balance = `$${parseFloat(wallet.balance_usdc).toFixed(2)} USDC`;
 
-    res.json(b.ephemeral([
-      b.header("📤", "Withdrawal Submitted"),
-      b.divider(),
-      b.fields(
-        ["Amount", `$${parseFloat(result.amount_usdc).toFixed(2)} USDC`],
-        ["To", `\`${result.to_address}\``],
-      ),
-      b.context("Transaction will be sent within a few minutes."),
-    ], `Withdrawal of $${parseFloat(result.amount_usdc).toFixed(2)} USDC submitted.`));
+    await axios.post("https://slack.com/api/views.open", {
+      trigger_id,
+      view: b.modal("withdraw_submit", "Withdraw USDC", "Withdraw", [
+        b.text(`📤 *Withdraw USDC to your wallet*\n\n*Available balance:* ${balance}`),
+        b.input("amount_block", "Amount (USDC)", "amount_input", "e.g. 5.00"),
+        b.input("address_block", "Destination wallet address", "address_input", "0x...", wallet.eth_address || null),
+      ]),
+    }, {
+      headers: { Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}` },
+    });
+
+    res.send("");
   } catch (err) {
-    const msg = err.response?.data?.error || "Something went wrong.";
-    res.json(b.error(msg));
+    console.error("[withdraw] error:", err.response?.data || err.message);
+    res.json(b.error("Something went wrong opening the withdrawal form."));
   }
 };
