@@ -10,9 +10,7 @@ module.exports = async function balance(req, res) {
     const amount = `$${parseFloat(wallet.balance_usdc).toFixed(2)} USDC`;
 
     res.json(b.ephemeral([
-      b.header("💰", "Your Balance"),
-      b.divider(),
-      b.text(`*${amount}*`),
+      b.text(`💰 *Your Balance*\n${amount}`),
     ], amount));
   } catch (err) {
     res.json(b.error("Error fetching balance. Try again."));

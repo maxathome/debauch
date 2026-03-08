@@ -70,4 +70,30 @@ function error(message) {
   return ephemeral([text(`:warning:  ${message}`)], message);
 }
 
-module.exports = { header, divider, text, fields, context, image, textWithThumbnail, actions, button, staticSelect, ephemeral, inChannel, error };
+function input(blockId, label, actionId, placeholder, initialValue = null) {
+  const element = {
+    type: "plain_text_input",
+    action_id: actionId,
+    placeholder: { type: "plain_text", text: placeholder, emoji: true },
+  };
+  if (initialValue) element.initial_value = initialValue;
+  return {
+    type: "input",
+    block_id: blockId,
+    label: { type: "plain_text", text: label, emoji: true },
+    element,
+  };
+}
+
+function modal(callbackId, title, submitLabel, blocks) {
+  return {
+    type: "modal",
+    callback_id: callbackId,
+    title: { type: "plain_text", text: title, emoji: true },
+    submit: { type: "plain_text", text: submitLabel, emoji: true },
+    close: { type: "plain_text", text: "Cancel", emoji: true },
+    blocks,
+  };
+}
+
+module.exports = { header, divider, text, fields, context, image, textWithThumbnail, actions, button, staticSelect, input, modal, ephemeral, inChannel, error };

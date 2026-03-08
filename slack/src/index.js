@@ -12,6 +12,8 @@ const house    = require("./commands/house");
 const donate   = require("./commands/donate");
 
 const coinflipInteraction = require("./interactions/coinflip");
+const depositInteraction  = require("./interactions/deposit");
+const withdrawInteraction = require("./interactions/withdraw");
 
 const app = express();
 
@@ -48,6 +50,14 @@ app.post("/slack/interact", async (req, res) => {
       }
     } catch (err) {
       console.error("[interact] Error handling action:", err.message, err.response?.data);
+    }
+  } else if (payload.type === "view_submission") {
+    if (payload.view.callback_id === "deposit_register") {
+      await depositInteraction.onRegister(payload, res);
+    } else if (payload.view.callback_id === "withdraw_submit") {
+      await withdrawInteraction.onSubmit(payload, res);
+    } else {
+      res.send("");
     }
   } else {
     res.send("");
