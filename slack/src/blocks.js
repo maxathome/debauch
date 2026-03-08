@@ -35,8 +35,39 @@ function inChannel(blocks, fallback) {
   return { response_type: "in_channel", text: fallback, blocks };
 }
 
+function image(url, altText) {
+  return { type: "image", image_url: url, alt_text: altText };
+}
+
+function textWithThumbnail(content, imageUrl, altText) {
+  return {
+    type: "section",
+    text: { type: "mrkdwn", text: content },
+    accessory: { type: "image", image_url: imageUrl, alt_text: altText },
+  };
+}
+
+function actions(...elements) {
+  return { type: "actions", elements };
+}
+
+function button(label, actionId, value, style = null) {
+  const el = { type: "button", action_id: actionId, text: { type: "plain_text", text: label, emoji: true }, value };
+  if (style) el.style = style;
+  return el;
+}
+
+function staticSelect(actionId, placeholder, options) {
+  return {
+    type: "static_select",
+    action_id: actionId,
+    placeholder: { type: "plain_text", text: placeholder, emoji: true },
+    options: options.map(([label, value]) => ({ text: { type: "plain_text", text: label, emoji: true }, value })),
+  };
+}
+
 function error(message) {
   return ephemeral([text(`:warning:  ${message}`)], message);
 }
 
-module.exports = { header, divider, text, fields, context, ephemeral, inChannel, error };
+module.exports = { header, divider, text, fields, context, image, textWithThumbnail, actions, button, staticSelect, ephemeral, inChannel, error };

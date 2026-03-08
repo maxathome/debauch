@@ -5,6 +5,7 @@ const api = require("../api");
 
 const LAST_BLOCK_FILE = path.join(__dirname, "../../data/last-block.json");
 const POLL_INTERVAL_MS = 30_000;
+const MAX_BLOCK_RANGE = 2_000;
 
 const USDC_ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -29,10 +30,13 @@ async function poll(provider, usdc, decimals) {
 
   if (fromBlock >= currentBlock) return;
 
-  console.log(`[poller] Scanning blocks ${fromBlock} → ${currentBlock}`);
+  // Scan in chunks to stay within the RPC provider's block range limit
+  const toBlock = Math.min(currentBlock, fromBlock + MAX_BLOCK_RANGE);
+
+  console.log(`[poller] Scanning blocks ${fromBlock} → ${toBlock}`);
 
   const filter = usdc.filters.Transfer(null, process.env.BOT_WALLET_ADDRESS);
-  const events = await usdc.queryFilter(filter, fromBlock, currentBlock);
+  const events = await usdc.queryFilter(filter, fromBlock, toBlock);
 
   for (const event of events) {
     const sender = event.args.from.toLowerCase();
@@ -58,7 +62,7 @@ async function poll(provider, usdc, decimals) {
     }
   }
 
-  saveLastBlock(currentBlock);
+  saveLastBlock(toBlock);
 }
 
 async function start() {
