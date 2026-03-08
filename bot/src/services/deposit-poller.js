@@ -6,6 +6,9 @@ const api = require("../api");
 const LAST_BLOCK_FILE = path.join(__dirname, "../../data/last-block.json");
 const POLL_INTERVAL_MS = 30_000;
 const MAX_BLOCK_RANGE = 2_000;
+// Base produces ~1 block every 2s. 50,000 blocks ≈ 27 hours.
+// Increase this if you need a longer automatic backfill window.
+const MAX_BACKFILL_BLOCKS = 50_000;
 
 const USDC_ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -65,12 +68,76 @@ async function poll(provider, usdc, decimals) {
   saveLastBlock(toBlock);
 }
 
+async function backfill(provider, usdc, decimals) {
+  const currentBlock = await provider.getBlockNumber();
+  const savedBlock = loadLastBlock() ?? currentBlock - 100;
+
+  if (savedBlock >= currentBlock) {
+    console.log("[poller] Backfill: already up to date");
+    return;
+  }
+
+  const gap = currentBlock - savedBlock;
+  let fromBlock = savedBlock;
+
+  if (gap > MAX_BACKFILL_BLOCKS) {
+    fromBlock = currentBlock - MAX_BACKFILL_BLOCKS;
+    console.warn(
+      `[poller] Backfill: gap of ${gap} blocks exceeds MAX_BACKFILL_BLOCKS (${MAX_BACKFILL_BLOCKS}). ` +
+      `Starting from block ${fromBlock} — deposits before this block must be credited manually.`
+    );
+  }
+
+  const totalBlocks = currentBlock - fromBlock;
+  const chunks = Math.ceil(totalBlocks / MAX_BLOCK_RANGE);
+  console.log(`[poller] Backfill: scanning ${totalBlocks} missed blocks in ${chunks} chunk(s)...`);
+
+  let cursor = fromBlock;
+  while (cursor < currentBlock) {
+    const toBlock = Math.min(currentBlock, cursor + MAX_BLOCK_RANGE);
+    console.log(`[poller] Backfill: chunk ${cursor} → ${toBlock}`);
+
+    const filter = usdc.filters.Transfer(null, process.env.BOT_WALLET_ADDRESS);
+    const events = await usdc.queryFilter(filter, cursor, toBlock);
+
+    for (const event of events) {
+      const sender = event.args.from.toLowerCase();
+      const amount = parseFloat(ethers.formatUnits(event.args.value, decimals));
+      const txHash = event.transactionHash;
+      const blockNumber = event.blockNumber;
+
+      console.log(`[poller] Backfill deposit: ${amount} USDC from ${sender} (tx: ${txHash})`);
+
+      try {
+        const user = await api.getUserByWallet(sender);
+        await api.deposit(user.platform_user_id, amount.toString(), txHash);
+        console.log(`[poller] Backfill credited $${amount} to ${user.username}`);
+      } catch (err) {
+        if (err.response?.status === 404) {
+          await api.createUnknownDeposit(sender, amount.toString(), txHash, blockNumber);
+          console.log(`[poller] Backfill unknown deposit logged from ${sender}`);
+        } else if (err.response?.status === 422 && err.response?.data?.error?.includes("already")) {
+          // Already credited — skip silently
+        } else {
+          console.error(`[poller] Backfill error for ${txHash}:`, err.message);
+        }
+      }
+    }
+
+    cursor = toBlock;
+    saveLastBlock(cursor);
+  }
+
+  console.log("[poller] Backfill complete");
+}
+
 async function start() {
   const provider = new ethers.JsonRpcProvider(process.env.BASE_RPC_URL);
   const usdc = new ethers.Contract(process.env.USDC_CONTRACT_ADDRESS, USDC_ABI, provider);
   const decimals = await usdc.decimals();
 
   console.log(`[poller] Started — polling every ${POLL_INTERVAL_MS / 1000}s`);
+  await backfill(provider, usdc, decimals);
   poll(provider, usdc, decimals);
   setInterval(() => poll(provider, usdc, decimals), POLL_INTERVAL_MS);
 }
