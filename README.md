@@ -28,9 +28,6 @@ debauch/
 ### Coinflip
 Pick heads or tails and bet between $0.01 and $10.00 USDC. Win and you get 2x your bet back, lose and the house takes it. No house edge. Uses `SecureRandom` (OS-level CSPRNG).
 
-### Roulette
-Bet on red/black/odd/even/low/high (1:1 payout) or a specific number 0–36 (35:1 payout).
-
 If the house balance hits $0.00, games close until it's topped up.
 
 ---
@@ -98,7 +95,6 @@ BASE_RPC_URL=https://mainnet.base.org
 | `/deposit` | Get deposit address and instructions |
 | `/withdraw <amount> <address>` | Withdraw USDC to your wallet |
 | `/coinflip <heads\|tails> <amount>` | Flip a coin |
-| `/roulette <type> <amount> [number]` | Spin the wheel |
 | `/house` | Check the house balance |
 | `/donate <amount>` | Donate USDC to the house |
 
@@ -146,7 +142,6 @@ PORT=3002
 | `/deposit` | Open deposit form — shows bot address and registers your sending wallet |
 | `/withdraw` | Open withdrawal form — prefills your registered address |
 | `/coinflip` | Flip a coin — pick amount and side from interactive buttons |
-| `/roulette <type> <amount> [number]` | Spin the wheel |
 | `/house` | Check the house balance |
 | `/donate <amount>` | Donate USDC to the house |
 

@@ -5,7 +5,6 @@ const verifyChannel = require("./middleware/verify-channel");
 
 const balance  = require("./commands/balance");
 const coinflip = require("./commands/coinflip");
-const roulette = require("./commands/roulette");
 const deposit  = require("./commands/deposit");
 const withdraw = require("./commands/withdraw");
 const house    = require("./commands/house");
@@ -30,7 +29,6 @@ app.use(verifySlack);
 // Slash commands — enforce channel restriction
 app.post("/slack/balance",  verifyChannel, balance);
 app.post("/slack/coinflip", verifyChannel, coinflip);
-app.post("/slack/roulette", verifyChannel, roulette);
 app.post("/slack/deposit",  verifyChannel, deposit);
 app.post("/slack/withdraw", verifyChannel, withdraw);
 app.post("/slack/house",    verifyChannel, house);

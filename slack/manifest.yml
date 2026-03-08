@@ -19,12 +19,6 @@ features:
       usage_hint: "<heads|tails> <amount>"
       should_escape: false
 
-    - command: /roulette
-      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/roulette
-      description: "Spin the roulette wheel. Even bets pay 1:1, number bets pay 35:1."
-      usage_hint: "<red|black|odd|even|low|high|number> <amount> [0-36]"
-      should_escape: false
-
     - command: /deposit
       url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/deposit
       description: Show deposit instructions or register your wallet address
