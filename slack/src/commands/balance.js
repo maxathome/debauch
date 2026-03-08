@@ -1,4 +1,5 @@
 const api = require("../api");
+const b = require("../blocks");
 
 module.exports = async function balance(req, res) {
   const { user_id, user_name } = req.body;
@@ -6,8 +7,14 @@ module.exports = async function balance(req, res) {
   try {
     await api.getOrCreateUser(user_id, user_name);
     const wallet = await api.getWallet(user_id);
-    res.json({ response_type: "ephemeral", text: `Your balance: *$${parseFloat(wallet.balance_usdc).toFixed(2)} USDC*` });
+    const amount = `$${parseFloat(wallet.balance_usdc).toFixed(2)} USDC`;
+
+    res.json(b.ephemeral([
+      b.header("💰", "Your Balance"),
+      b.divider(),
+      b.text(`*${amount}*`),
+    ], amount));
   } catch (err) {
-    res.json({ response_type: "ephemeral", text: "Error fetching balance. Try again." });
+    res.json(b.error("Error fetching balance. Try again."));
   }
 };
