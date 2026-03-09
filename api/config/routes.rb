@@ -39,6 +39,7 @@ Rails.application.routes.draw do
       post "unknown_deposits",                        to: "unknown_deposits#create"
       post "unknown_deposits/:id/assign_to_user",     to: "unknown_deposits#assign_to_user"
       post "unknown_deposits/:id/assign_to_house",    to: "unknown_deposits#assign_to_house"
+      post "transfer_from_house",                     to: "transfers#transfer_from_house"
     end
   end
 end

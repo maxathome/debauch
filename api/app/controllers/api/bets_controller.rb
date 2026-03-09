@@ -62,7 +62,7 @@ module Api
         p2.transactions.create!(
           amount_usdc: bet.amount_usdc, tx_type: "bet_escrow", status: "confirmed", tx_hash: nil
         )
-        bet.update!(status: "active", contract_bet_id: params[:contract_bet_id])
+        bet.update!(status: "active")
       end
 
       render json: bet_json(bet)

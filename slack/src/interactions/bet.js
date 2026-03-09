@@ -59,19 +59,9 @@ async function onBetCreate(payload, res) {
     });
   }
 
-  if (opponentId === meta.player1_id) {
-    return res.json({
-      response_action: "errors",
-      errors: { bet_opponent: "You can't bet against yourself" },
-    });
-  }
-
-  if (arbitratorId === meta.player1_id || arbitratorId === opponentId) {
-    return res.json({
-      response_action: "errors",
-      errors: { bet_arbitrator: "Arbitrator must be a neutral third party" },
-    });
-  }
+  // Validation disabled for testing — re-enable before going to prod:
+  // if (opponentId === meta.player1_id) { ... }
+  // if (arbitratorId === meta.player1_id || arbitratorId === opponentId) { ... }
 
   res.json({ response_action: "clear" });
 
@@ -103,9 +93,25 @@ async function onBetCreate(payload, res) {
       channel_id:          meta.channel_id,
     });
 
-    // 2. Escrow p1's funds on-chain
-    const contractBetId = await betContract.createBet(resolveAfter, amount);
-    await api.updateBetContractId(bet.id, contractBetId);
+    // 2. Escrow p1's funds on-chain (non-blocking — DM goes out regardless)
+    betContract.createBet(resolveAfter, amount)
+      .then(async (contractBetId) => {
+        await api.updateBetContractId(bet.id, contractBetId);
+        // If p2 accepted while contract was still processing, activate now
+        const current = await api.getBet(bet.id);
+        if (current.status === "active") {
+          await betContract.activateBet(contractBetId, parseFloat(current.amount_usdc));
+          console.log(`[bet] Late-activated contract bet #${contractBetId} for bet #${bet.id}`);
+        }
+      })
+      .catch((err) => {
+        console.error(`[bet] Contract createBet failed for bet #${bet.id}:`, err.message);
+        const isGas = err.message?.toLowerCase().includes("insufficient funds") || err.code === "INSUFFICIENT_FUNDS";
+        const msg = isGas
+          ? ":warning: Your bet was created but the on-chain escrow failed — the bot wallet doesn't have enough ETH for gas. Ask an admin to top it up, then the funds will be escrowed on the next retry."
+          : `:warning: Your bet was created but the on-chain escrow failed: ${err.message}`;
+        dmUser(meta.player1_id, [b.text(msg)], "Escrow failed").catch(() => {});
+      });
 
     // 3. DM player 2 with Accept / Decline
     const dmBlocks = [
@@ -122,11 +128,12 @@ async function onBetCreate(payload, res) {
         b.button("✅  Accept", "bet_accept", String(bet.id), "primary"),
         b.button("❌  Decline", "bet_decline", String(bet.id), "danger")
       ),
+      b.context(`Bet ID: ${bet.id}`),
     ];
 
     await dmUser(opponentId, dmBlocks, `${p1Info.name} wants to bet you $${amount} USDC — "${description}"`);
 
-    console.log(`[bet] Created bet #${bet.id} (contract #${contractBetId}), DM sent to ${opponentId}`);
+    console.log(`[bet] Created bet #${bet.id}, DM sent to ${opponentId}`);
   } catch (err) {
     console.error("[bet] onBetCreate error:", err.message, err.response?.data);
   }
@@ -143,8 +150,18 @@ async function onAccept(payload, action) {
     // 2. Debit p2 and activate bet in DB
     const bet = await api.acceptBet(betId);
 
-    // 3. Activate on-chain
-    await betContract.activateBet(bet.contract_bet_id, parseFloat(bet.amount_usdc));
+    // 3. Activate on-chain (non-blocking)
+    if (bet.contract_bet_id != null) {
+      betContract.activateBet(bet.contract_bet_id, parseFloat(bet.amount_usdc))
+        .catch((err) => {
+          console.error(`[bet] Contract activateBet failed for bet #${bet.id}:`, err.message);
+          const isGas = err.message?.toLowerCase().includes("insufficient funds") || err.code === "INSUFFICIENT_FUNDS";
+          const msg = isGas
+            ? ":warning: Bet accepted but on-chain escrow failed — the bot wallet doesn't have enough ETH for gas. Ask an admin to top it up."
+            : `:warning: Bet accepted but on-chain escrow failed: ${err.message}`;
+          dmUser(acceptorId, [b.text(msg)], "Escrow failed").catch(() => {});
+        });
+    }
 
     const [p1Info, arbInfo] = await Promise.all([
       getUserInfo(bet.player1_id),
@@ -164,6 +181,7 @@ async function onAccept(payload, action) {
         ["👨‍⚖️ Arbitrator", arbInfo.name],
         ["⏰ Resolve after", resolveAfterFmt]
       ),
+      b.context(`Bet ID: ${bet.id}`),
     ];
 
     await postToChannel(bet.channel_id, channelBlocks, `Bet is ON: ${bet.description}`);
@@ -183,6 +201,7 @@ async function onAccept(payload, action) {
         b.button(`🏆  ${acceptorInfo.name} Wins`, "bet_resolve_p2", String(bet.id), "primary"),
         b.button("🚫  Cancel Bet", "bet_cancel", String(bet.id), "danger")
       ),
+      b.context(`Bet ID: ${bet.id}`),
     ];
 
     await dmUser(bet.arbitrator_id, arbBlocks, `You're the arbitrator for: "${bet.description}"`);
@@ -207,6 +226,7 @@ async function onDecline(payload, action) {
       b.text(`❌ *Bet declined*`),
       b.text(`> ${bet.description}`),
       b.text(`Your $${bet.amount_usdc} USDC has been refunded.`),
+      b.context(`Bet ID: ${betId}`),
     ], `${payload.user.name} declined your bet`);
 
     console.log(`[bet] Bet #${betId} declined`);
@@ -234,8 +254,10 @@ async function onResolve(payload, action, winner) {
 
     const winnerId = winner === "p1" ? bet.player1_id : bet.player2_id;
 
-    // Resolve on-chain (enforces time lock)
-    await betContract.resolveBet(bet.contract_bet_id);
+    // Resolve on-chain if escrow was successfully created
+    if (bet.contract_bet_id != null) {
+      await betContract.resolveBet(bet.contract_bet_id);
+    }
 
     // Credit winner in DB
     const resolved = await api.resolveBet(betId, winnerId);
@@ -260,6 +282,7 @@ async function onResolve(payload, action, winner) {
         ["Loser", loserInfo.name],
         ["Pot", `$${totalPot} USDC`]
       ),
+      b.context(`Bet ID: ${betId}`),
     ];
 
     await postToChannel(bet.channel_id, channelBlocks, `${winnerInfo.name} wins the bet!`);
@@ -279,8 +302,10 @@ async function onCancel(payload, action) {
   try {
     const bet = await api.getBet(betId);
 
-    // Cancel on-chain first
-    await betContract.cancelBet(bet.contract_bet_id);
+    // Cancel on-chain if escrow was successfully created
+    if (bet.contract_bet_id != null) {
+      await betContract.cancelBet(bet.contract_bet_id);
+    }
 
     // Refund internally
     await api.cancelBet(betId);
@@ -294,6 +319,7 @@ async function onCancel(payload, action) {
       b.text("🚫 *Bet cancelled*"),
       b.text(`> ${bet.description}`),
       b.text(`Both players have been refunded $${bet.amount_usdc} USDC.`),
+      b.context(`Bet ID: ${betId}`),
     ];
 
     if (bet.status === "active") {
@@ -301,8 +327,8 @@ async function onCancel(payload, action) {
     }
 
     await Promise.all([
-      dmUser(bet.player1_id, [b.text(`🚫 Your bet was cancelled by the arbitrator.\n> ${bet.description}\nYou've been refunded $${bet.amount_usdc} USDC.`)], "Bet cancelled"),
-      dmUser(bet.player2_id, [b.text(`🚫 Your bet was cancelled by the arbitrator.\n> ${bet.description}\nYou've been refunded $${bet.amount_usdc} USDC.`)], "Bet cancelled"),
+      dmUser(bet.player1_id, [b.text(`🚫 Your bet was cancelled by the arbitrator.\n> ${bet.description}\nYou've been refunded $${bet.amount_usdc} USDC.`), b.context(`Bet ID: ${betId}`)], "Bet cancelled"),
+      dmUser(bet.player2_id, [b.text(`🚫 Your bet was cancelled by the arbitrator.\n> ${bet.description}\nYou've been refunded $${bet.amount_usdc} USDC.`), b.context(`Bet ID: ${betId}`)], "Bet cancelled"),
     ]);
 
     console.log(`[bet] Bet #${betId} cancelled`);
