@@ -6,6 +6,7 @@ const verifyChannel = require("./middleware/verify-channel");
 const balance  = require("./commands/balance");
 const coinflip = require("./commands/coinflip");
 const picknum  = require("./commands/picknum");
+const bet      = require("./commands/bet");
 const deposit  = require("./commands/deposit");
 const withdraw = require("./commands/withdraw");
 const house    = require("./commands/house");
@@ -13,6 +14,7 @@ const donate   = require("./commands/donate");
 
 const coinflipInteraction = require("./interactions/coinflip");
 const picknumInteraction  = require("./interactions/picknum");
+const betInteraction      = require("./interactions/bet");
 const depositInteraction  = require("./interactions/deposit");
 const withdrawInteraction = require("./interactions/withdraw");
 
@@ -36,6 +38,7 @@ app.post("/slack/deposit",  verifyChannel, deposit);
 app.post("/slack/withdraw", verifyChannel, withdraw);
 app.post("/slack/house",    verifyChannel, house);
 app.post("/slack/donate",   verifyChannel, donate);
+app.post("/slack/bet",      verifyChannel, bet);
 
 // Interactive component handler
 app.post("/slack/interact", async (req, res) => {
@@ -52,6 +55,16 @@ app.post("/slack/interact", async (req, res) => {
         await picknumInteraction.onP1Pick(payload, action);
       } else if (action.action_id === "picknum_join") {
         await picknumInteraction.onJoin(payload, action);
+      } else if (action.action_id === "bet_accept") {
+        await betInteraction.onAccept(payload, action);
+      } else if (action.action_id === "bet_decline") {
+        await betInteraction.onDecline(payload, action);
+      } else if (action.action_id === "bet_resolve_p1") {
+        await betInteraction.onResolve(payload, action, "p1");
+      } else if (action.action_id === "bet_resolve_p2") {
+        await betInteraction.onResolve(payload, action, "p2");
+      } else if (action.action_id === "bet_cancel") {
+        await betInteraction.onCancel(payload, action);
       }
     } catch (err) {
       console.error("[interact] Error handling action:", err.message, err.response?.data);
@@ -63,6 +76,8 @@ app.post("/slack/interact", async (req, res) => {
       await withdrawInteraction.onSubmit(payload, res);
     } else if (payload.view.callback_id === "picknum_p2") {
       await picknumInteraction.onP2Submit(payload, res);
+    } else if (payload.view.callback_id === "bet_create") {
+      await betInteraction.onBetCreate(payload, res);
     } else {
       res.send("");
     }

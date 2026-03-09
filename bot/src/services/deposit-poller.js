@@ -131,6 +131,48 @@ async function backfill(provider, usdc, decimals) {
   console.log("[poller] Backfill complete");
 }
 
+// Check for pending bets past the 12-hour acceptance window and expire them.
+// Runs every 5 minutes.
+const BET_EXPIRE_INTERVAL_MS = 5 * 60_000;
+
+async function expireStaleContracts() {
+  if (!process.env.BET_ESCROW_ADDRESS) return; // contract not deployed yet
+
+  const { ethers: _ethers } = require("ethers");
+  const BET_ESCROW_ABI = [
+    "function expireBet(uint256 betId) external",
+  ];
+
+  let expiredBets;
+  try {
+    expiredBets = await api.getExpiredPendingBets();
+  } catch (err) {
+    console.error("[poller] Failed to fetch expired bets:", err.message);
+    return;
+  }
+
+  if (!expiredBets.length) return;
+  console.log(`[poller] Found ${expiredBets.length} expired pending bet(s)`);
+
+  const provider = new _ethers.JsonRpcProvider(process.env.BASE_RPC_URL);
+  const wallet   = new _ethers.Wallet(process.env.BOT_WALLET_PRIVATE_KEY, provider);
+  const contract = new _ethers.Contract(process.env.BET_ESCROW_ADDRESS, BET_ESCROW_ABI, wallet);
+
+  for (const bet of expiredBets) {
+    try {
+      if (bet.contract_bet_id != null) {
+        const tx = await contract.expireBet(bet.contract_bet_id);
+        await tx.wait();
+        console.log(`[poller] Expired bet #${bet.id} on-chain (contract bet #${bet.contract_bet_id})`);
+      }
+      await api.expireBet(bet.id);
+      console.log(`[poller] Marked bet #${bet.id} as expired in DB`);
+    } catch (err) {
+      console.error(`[poller] Failed to expire bet #${bet.id}:`, err.message);
+    }
+  }
+}
+
 async function start() {
   const provider = new ethers.JsonRpcProvider(process.env.BASE_RPC_URL);
   const usdc = new ethers.Contract(process.env.USDC_CONTRACT_ADDRESS, USDC_ABI, provider);
@@ -140,6 +182,10 @@ async function start() {
   await backfill(provider, usdc, decimals);
   poll(provider, usdc, decimals);
   setInterval(() => poll(provider, usdc, decimals), POLL_INTERVAL_MS);
+
+  // Expire stale pending bets every 5 minutes
+  expireStaleContracts();
+  setInterval(expireStaleContracts, BET_EXPIRE_INTERVAL_MS);
 }
 
 module.exports = { start };
