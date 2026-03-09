@@ -15,7 +15,9 @@ module.exports = async function bet(req, res) {
     "New Bet",
     "Place Bet",
     [
-      b.textarea("bet_description", "What's the bet?", "description", "e.g. I bet you I can make this free throw"),
+      b.textarea("bet_description", "What's the bet?", "description", "e.g. Free throw attempt tomorrow at 9pm"),
+      b.input("bet_p1_wins_if", "I win if...", "player1_wins_if", "e.g. I make the shot"),
+      b.input("bet_p2_wins_if", "They win if...", "player2_wins_if", "e.g. I miss the shot"),
       b.input("bet_amount", "Amount (USDC each)", "amount", "e.g. 5"),
       b.userSelect("bet_opponent", "Bet against", "opponent", "Select a player..."),
       b.userSelect("bet_arbitrator", "Arbitrator", "arbitrator", "Who decides who won?"),
