@@ -41,20 +41,24 @@ async function onBetCreate(payload, res) {
   const values = payload.view.state.values;
   const meta = JSON.parse(payload.view.private_metadata);
 
-  const description  = values.bet_description.description.value?.trim();
-  const amountStr    = values.bet_amount.amount.value?.trim();
-  const opponentId   = values.bet_opponent.opponent.selected_user;
-  const arbitratorId = values.bet_arbitrator.arbitrator.selected_user;
-  const resolveAfter = values.bet_resolve_after.resolve_after.selected_date_time;
+  const description    = values.bet_description.description.value?.trim();
+  const player1WinsIf  = values.bet_p1_wins_if.player1_wins_if.value?.trim();
+  const player2WinsIf  = values.bet_p2_wins_if.player2_wins_if.value?.trim();
+  const amountStr      = values.bet_amount.amount.value?.trim();
+  const opponentId     = values.bet_opponent.opponent.selected_user;
+  const arbitratorId   = values.bet_arbitrator.arbitrator.selected_user;
+  const resolveAfter   = values.bet_resolve_after.resolve_after.selected_date_time;
 
   const amount = parseFloat(amountStr);
 
-  if (!description || isNaN(amount) || amount <= 0) {
+  if (!description || !player1WinsIf || !player2WinsIf || isNaN(amount) || amount <= 0) {
     return res.json({
       response_action: "errors",
       errors: {
-        bet_description: !description ? "Please enter a bet description" : undefined,
-        bet_amount: isNaN(amount) || amount <= 0 ? "Enter a valid amount (e.g. 5)" : undefined,
+        bet_description:  !description   ? "Please describe the bet"           : undefined,
+        bet_p1_wins_if:   !player1WinsIf ? "Enter your win condition"           : undefined,
+        bet_p2_wins_if:   !player2WinsIf ? "Enter their win condition"          : undefined,
+        bet_amount:       isNaN(amount) || amount <= 0 ? "Enter a valid amount" : undefined,
       },
     });
   }
@@ -88,6 +92,8 @@ async function onBetCreate(payload, res) {
       player2_username:    p2Info.name,
       arbitrator_username: arbInfo.name,
       description,
+      player1_wins_if:     player1WinsIf,
+      player2_wins_if:     player2WinsIf,
       amount_usdc:         amount,
       resolve_after:       resolveAfter,
       channel_id:          meta.channel_id,
@@ -121,6 +127,8 @@ async function onBetCreate(payload, res) {
         : b.text(`*${p1Info.name}* wants to bet you *$${amount} USDC* each`),
       b.text(`> ${description}`),
       b.fields(
+        [`🏆 ${p1Info.name} wins if`, player1WinsIf],
+        [`🏆 ${p2Info.name} wins if`, player2WinsIf],
         ["Arbitrator", arbInfo.name],
         ["Resolve after", formatResolveAfter(resolveAfter)]
       ),
@@ -176,8 +184,9 @@ async function onAccept(payload, action) {
       b.text("🤝 *A bet has been made!*"),
       b.text(`> ${bet.description}`),
       b.fields(
+        [`🏆 ${p1Info.name} wins if`, bet.player1_wins_if],
+        [`🏆 ${acceptorInfo.name} wins if`, bet.player2_wins_if],
         ["💰 Pot", `$${totalPot} USDC`],
-        ["⚔️ Players", `${p1Info.name}  vs  ${acceptorInfo.name}`],
         ["👨‍⚖️ Arbitrator", arbInfo.name],
         ["⏰ Resolve after", resolveAfterFmt]
       ),
@@ -191,8 +200,9 @@ async function onAccept(payload, action) {
       b.text("👨‍⚖️ *You've been named arbitrator for a bet*"),
       b.text(`> ${bet.description}`),
       b.fields(
-        ["💰 Pot", `$${totalPot} USDC (each player put in $${bet.amount_usdc})`],
-        ["⚔️ Players", `${p1Info.name}  vs  ${acceptorInfo.name}`],
+        [`🏆 ${p1Info.name} wins if`, bet.player1_wins_if],
+        [`🏆 ${acceptorInfo.name} wins if`, bet.player2_wins_if],
+        ["💰 Pot", `$${totalPot} USDC`],
         ["⏰ Can resolve after", resolveAfterFmt]
       ),
       b.text("_Once the resolve time passes, use the buttons below to declare a winner or cancel the bet._"),
@@ -279,7 +289,7 @@ async function onResolve(payload, action, winner) {
         : b.text(`🏆 <@${winnerId}> wins *$${totalPot} USDC*!`),
       b.fields(
         ["Winner", `<@${winnerId}>`],
-        ["Loser", loserInfo.name],
+        ["Winner's condition", winner === "p1" ? bet.player1_wins_if : bet.player2_wins_if],
         ["Pot", `$${totalPot} USDC`]
       ),
       b.context(`Bet ID: ${betId}`),

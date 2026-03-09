@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_09_005236) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_09_152954) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -30,6 +30,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_09_005236) do
     t.string "winner_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "player1_wins_if"
+    t.string "player2_wins_if"
     t.index ["arbitrator_id"], name: "index_bets_on_arbitrator_id"
     t.index ["player1_id"], name: "index_bets_on_player1_id"
     t.index ["player2_id"], name: "index_bets_on_player2_id"
