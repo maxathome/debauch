@@ -17,6 +17,16 @@ Rails.application.routes.draw do
     post "users/:platform_user_id/wallet/withdraw", to: "wallets#withdraw"
     post "users/:platform_user_id/wallet/donate",   to: "wallets#donate"
 
+    get    "bets/expired_pending",      to: "bets#expired_pending"
+    post   "bets",                      to: "bets#create"
+    get    "bets/:id",                  to: "bets#show"
+    patch  "bets/:id/accept",           to: "bets#accept"
+    patch  "bets/:id/decline",          to: "bets#decline"
+    patch  "bets/:id/resolve",          to: "bets#resolve"
+    patch  "bets/:id/cancel",           to: "bets#cancel"
+    patch  "bets/:id/expire",           to: "bets#expire"
+    patch  "bets/:id/set_contract_id",  to: "bets#set_contract_id"
+
     post "games/coinflip",  to: "games#coinflip"
     post "games/picknum",   to: "games#picknum"
     post "games/roulette",  to: "games#roulette"

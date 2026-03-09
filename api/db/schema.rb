@@ -10,9 +10,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_07_000002) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_09_005236) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "bets", force: :cascade do |t|
+    t.string "player1_id", null: false
+    t.string "player2_id", null: false
+    t.string "arbitrator_id", null: false
+    t.string "player1_username"
+    t.string "player2_username"
+    t.string "arbitrator_username"
+    t.text "description", null: false
+    t.decimal "amount_usdc", precision: 18, scale: 6, null: false
+    t.string "status", default: "pending_acceptance", null: false
+    t.datetime "resolve_after", null: false
+    t.string "channel_id"
+    t.integer "contract_bet_id"
+    t.string "winner_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["arbitrator_id"], name: "index_bets_on_arbitrator_id"
+    t.index ["player1_id"], name: "index_bets_on_player1_id"
+    t.index ["player2_id"], name: "index_bets_on_player2_id"
+    t.index ["status"], name: "index_bets_on_status"
+  end
 
   create_table "game_entries", force: :cascade do |t|
     t.bigint "game_id", null: false

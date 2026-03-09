@@ -85,6 +85,45 @@ function input(blockId, label, actionId, placeholder, initialValue = null) {
   };
 }
 
+function textarea(blockId, label, actionId, placeholder) {
+  return {
+    type: "input",
+    block_id: blockId,
+    label: { type: "plain_text", text: label, emoji: true },
+    element: {
+      type: "plain_text_input",
+      action_id: actionId,
+      multiline: true,
+      placeholder: { type: "plain_text", text: placeholder, emoji: true },
+    },
+  };
+}
+
+function userSelect(blockId, label, actionId, placeholder) {
+  return {
+    type: "input",
+    block_id: blockId,
+    label: { type: "plain_text", text: label, emoji: true },
+    element: {
+      type: "users_select",
+      action_id: actionId,
+      placeholder: { type: "plain_text", text: placeholder, emoji: true },
+    },
+  };
+}
+
+function datetimePicker(blockId, label, actionId) {
+  return {
+    type: "input",
+    block_id: blockId,
+    label: { type: "plain_text", text: label, emoji: true },
+    element: {
+      type: "datetimepicker",
+      action_id: actionId,
+    },
+  };
+}
+
 function modal(callbackId, title, submitLabel, blocks, privateMetadata = null) {
   const view = {
     type: "modal",
@@ -98,4 +137,4 @@ function modal(callbackId, title, submitLabel, blocks, privateMetadata = null) {
   return view;
 }
 
-module.exports = { header, divider, text, fields, context, image, textWithThumbnail, actions, button, staticSelect, input, modal, ephemeral, inChannel, error };
+module.exports = { header, divider, text, fields, context, image, textWithThumbnail, actions, button, staticSelect, input, textarea, userSelect, datetimePicker, modal, ephemeral, inChannel, error };

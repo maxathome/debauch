@@ -56,6 +56,16 @@ module.exports = {
     return res.data;
   },
 
+  async getExpiredPendingBets() {
+    const res = await client.get("/bets/expired_pending");
+    return res.data;
+  },
+
+  async expireBet(betId) {
+    const res = await client.patch(`/bets/${betId}/expire`);
+    return res.data;
+  },
+
   async coinflip(platformUserId, choice, amount) {
     const res = await client.post("/games/coinflip", { platform_user_id: platformUserId, choice, amount });
     return res.data;
