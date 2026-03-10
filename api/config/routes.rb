@@ -18,6 +18,7 @@ Rails.application.routes.draw do
     post "users/:platform_user_id/wallet/donate",   to: "wallets#donate"
 
     get    "bets/expired_pending",      to: "bets#expired_pending"
+    get    "bets",                      to: "bets#index"
     post   "bets",                      to: "bets#create"
     get    "bets/:id",                  to: "bets#show"
     patch  "bets/:id/accept",           to: "bets#accept"

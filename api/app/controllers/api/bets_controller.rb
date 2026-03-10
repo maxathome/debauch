@@ -1,5 +1,21 @@
 module Api
   class BetsController < ApplicationController
+    # GET /api/bets?filter=mine|all|others&user_id=U123
+    def index
+      bets = Bet.where(status: %w[pending_acceptance active])
+
+      case params[:filter]
+      when "mine"
+        bets = bets.where("player1_id = ? OR player2_id = ? OR arbitrator_id = ?",
+                          params[:user_id], params[:user_id], params[:user_id])
+      when "others"
+        bets = bets.where.not("player1_id = ? OR player2_id = ? OR arbitrator_id = ?",
+                              params[:user_id], params[:user_id], params[:user_id])
+      end
+
+      render json: bets.order(created_at: :desc).map { |b| bet_json(b) }
+    end
+
     # GET /api/bets/:id
     def show
       bet = Bet.find(params[:id])
