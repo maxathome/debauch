@@ -18,9 +18,10 @@ Users deposit USDC into a shared bot wallet on Base (an Ethereum L2 with ~$0.001
 
 ```
 debauch/
-├── api/     # Rails REST API — users, wallets, games, house balance
-├── bot/     # Discord bot — slash commands
-└── slack/   # Slack app — slash commands + interactive components
+├── api/          # Rails REST API — users, wallets, games, bets, house balance
+├── bot/          # Discord bot — slash commands
+├── slack/        # Slack app — slash commands + interactive components
+└── contracts/    # Solidity smart contract (BetEscrow) + Hardhat deploy scripts
 ```
 
 ## Games
@@ -29,6 +30,15 @@ debauch/
 Pick heads or tails and bet between $0.01 and $10.00 USDC. Win and you get 2x your bet back, lose and the house takes it. No house edge. Uses `SecureRandom` (OS-level CSPRNG).
 
 If the house balance hits $0.00, games close until it's topped up.
+
+### PVP Bets
+Challenge another user to a bet on anything, with a third-party arbitrator to call the winner. Stakes are held in a Solidity escrow contract (`BetEscrow`) on Base until the arbitrator resolves. Bets expire automatically if the opponent doesn't accept within 12 hours.
+
+- Player 1 creates a bet (description, win conditions, amount, opponent, arbitrator, resolve date)
+- Player 2 receives a DM and accepts or declines
+- On acceptance, both stakes are locked in the smart contract
+- After the resolve date, the arbitrator picks a winner via `/bet resolve` — the pot is credited to the winner's internal balance
+- Either party can cancel at any time (before resolution), which refunds both stakes
 
 ---
 
@@ -129,9 +139,13 @@ node src/index.js
 ```
 API_BASE_URL=http://localhost:3001/api
 BOT_WALLET_ADDRESS=0x...
+BOT_WALLET_PRIVATE_KEY=0x...
 SLACK_SIGNING_SECRET=
 SLACK_BOT_TOKEN=xoxb-...
 ALLOWED_CHANNEL_ID=    # restrict commands to this channel (right-click channel → Copy Channel ID)
+BASE_RPC_URL=https://mainnet.base.org
+BET_ESCROW_ADDRESS=0x...
+USDC_CONTRACT_ADDRESS=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 PORT=3002
 ```
 
@@ -144,6 +158,20 @@ PORT=3002
 | `/coinflip` | Flip a coin — pick amount and side from interactive buttons |
 | `/house` | Check the house balance |
 | `/donate <amount>` | Donate USDC to the house |
+| `/bet` | Challenge another user to a PVP bet with on-chain escrow |
+| `/checkbets` | View unresolved bets — filter by yours, all, or others'; post individual bets to channel |
+
+#### Smart contract (BetEscrow)
+The bot uses a Solidity escrow contract to hold USDC stakes on-chain during active bets.
+
+```bash
+cd contracts
+npm install
+cp .env.example .env   # add PRIVATE_KEY and BASE_RPC_URL
+npx hardhat run scripts/deploy.js --network base-sepolia
+```
+
+Copy the printed `BET_ESCROW_ADDRESS` into `slack/.env`. The contract only needs to be deployed once.
 
 ---
 
@@ -159,3 +187,11 @@ PORT=3002
 | `POST` | `/api/games/roulette` | Play roulette |
 | `GET` | `/api/house` | Get house balance |
 | `POST` | `/api/house/fund` | Add funds to the house |
+| `GET` | `/api/bets` | List unresolved bets (filter: `mine`/`all`/`others`, `user_id`) |
+| `POST` | `/api/bets` | Create a bet |
+| `GET` | `/api/bets/:id` | Get a single bet |
+| `PATCH` | `/api/bets/:id/accept` | Accept a bet (p2) |
+| `PATCH` | `/api/bets/:id/decline` | Decline a bet (p2) |
+| `PATCH` | `/api/bets/:id/resolve` | Resolve a bet (arbitrator) |
+| `PATCH` | `/api/bets/:id/cancel` | Cancel a bet |
+| `POST` | `/api/admin/transfer_from_house` | Credit a user from the house balance |
