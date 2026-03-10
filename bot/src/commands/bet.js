@@ -56,6 +56,13 @@ async function handleChallenge(interaction) {
     return interaction.editReply({ content: `❌ ${err.message}` });
   }
 
+  if (opponent.id === interaction.user.id) {
+    return interaction.editReply({ content: "❌ You can't bet against yourself." });
+  }
+  if (arbitrator.id === interaction.user.id || arbitrator.id === opponent.id) {
+    return interaction.editReply({ content: "❌ Arbitrator must be a third party — not a player in the bet." });
+  }
+
   await api.getOrCreateUser(interaction.user.id, interaction.user.username);
   await api.getOrCreateUser(opponent.id, opponent.username);
   await api.getOrCreateUser(arbitrator.id, arbitrator.username);

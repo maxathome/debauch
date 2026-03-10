@@ -63,9 +63,12 @@ async function onBetCreate(payload, res) {
     });
   }
 
-  // Validation disabled for testing — re-enable before going to prod:
-  // if (opponentId === meta.player1_id) { ... }
-  // if (arbitratorId === meta.player1_id || arbitratorId === opponentId) { ... }
+  if (opponentId === meta.player1_id) {
+    return res.json({ response_action: "errors", errors: { bet_opponent: "You can't bet against yourself." } });
+  }
+  if (arbitratorId === meta.player1_id || arbitratorId === opponentId) {
+    return res.json({ response_action: "errors", errors: { bet_arbitrator: "Arbitrator must be a third party — not a player in the bet." } });
+  }
 
   res.json({ response_action: "clear" });
 

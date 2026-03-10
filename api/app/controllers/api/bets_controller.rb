@@ -1,5 +1,7 @@
 module Api
   class BetsController < ApplicationController
+    MIN_BET = BigDecimal("0.01")
+    MAX_BET = BigDecimal("100.00")
     # GET /api/bets?filter=mine|all|others&user_id=U123
     def index
       bets = Bet.where(status: %w[pending_acceptance active])
@@ -35,7 +37,9 @@ module Api
       p1 = User.find_by!(platform_user_id: params[:player1_id])
       amount = BigDecimal(params[:amount_usdc].to_s)
 
-      return render json: { error: "Amount must be > 0" }, status: :unprocessable_entity unless amount > 0
+      return render json: { error: "Amount must be between $#{MIN_BET} and $#{MAX_BET} USDC" }, status: :unprocessable_entity unless amount.between?(MIN_BET, MAX_BET)
+      return render json: { error: "You can't bet against yourself" }, status: :unprocessable_entity if params[:player1_id] == params[:player2_id]
+      return render json: { error: "Arbitrator must be a third party" }, status: :unprocessable_entity if [params[:player1_id], params[:player2_id]].include?(params[:arbitrator_id])
 
       bet = nil
       ActiveRecord::Base.transaction do
