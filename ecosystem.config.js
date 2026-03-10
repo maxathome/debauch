@@ -5,7 +5,12 @@ module.exports = {
       cwd: "./slack",
       script: "src/index.js",
       watch: false,
-      env: { NODE_ENV: "production" },
+      env: {
+        NODE_ENV: "development",
+      },
+      env_production: {
+        NODE_ENV: "production",
+      },
       out_file: "../logs/slack.log",
       error_file: "../logs/slack.error.log",
       time: true,
@@ -15,7 +20,12 @@ module.exports = {
       cwd: "./bot",
       script: "src/index.js",
       watch: false,
-      env: { NODE_ENV: "production" },
+      env: {
+        NODE_ENV: "development",
+      },
+      env_production: {
+        NODE_ENV: "production",
+      },
       out_file: "../logs/bot.log",
       error_file: "../logs/bot.error.log",
       time: true,

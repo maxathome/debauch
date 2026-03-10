@@ -1,4 +1,6 @@
-require("dotenv").config();
+require("dotenv").config({
+  path: process.env.NODE_ENV === "production" ? ".env.production" : ".env",
+});
 const express = require("express");
 const verifySlack = require("./middleware/verify-slack");
 const verifyChannel = require("./middleware/verify-channel");
