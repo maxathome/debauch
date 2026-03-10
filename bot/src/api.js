@@ -41,8 +41,8 @@ module.exports = {
     return res.data;
   },
 
-  async withdraw(platformUserId, amount, toAddress) {
-    const res = await client.post(`/users/${platformUserId}/wallet/withdraw`, { amount, to_address: toAddress });
+  async withdraw(platformUserId, amount, toAddress, txHash) {
+    const res = await client.post(`/users/${platformUserId}/wallet/withdraw`, { amount, to_address: toAddress, tx_hash: txHash });
     return res.data;
   },
 

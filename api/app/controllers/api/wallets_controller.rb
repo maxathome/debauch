@@ -64,26 +64,28 @@ module Api
     end
 
     # POST /api/users/:platform_user_id/wallet/withdraw
+    # Called after the on-chain transfer is confirmed. tx_hash is required.
     def withdraw
       user = User.find_by!(platform_user_id: params[:platform_user_id])
       amount = BigDecimal(params[:amount].to_s)
       to_address = params[:to_address]
+      tx_hash = params[:tx_hash]
 
       return render json: { error: "Withdrawal must be at least $#{MIN_WITHDRAWAL} USDC" }, status: :unprocessable_entity unless amount >= MIN_WITHDRAWAL
       return render json: { error: "Invalid wallet address" }, status: :unprocessable_entity unless to_address&.match?(/\A0x[0-9a-fA-F]{40}\z/)
+      return render json: { error: "tx_hash is required" }, status: :unprocessable_entity if tx_hash.blank?
 
       ActiveRecord::Base.transaction do
         user.debit!(amount)
         user.transactions.create!(
           amount_usdc: amount,
           tx_type: "withdrawal",
-          status: "pending",
-          tx_hash: nil
+          status: "confirmed",
+          tx_hash: tx_hash
         )
       end
 
-      # Return the withdrawal request — bot will submit the on-chain tx
-      render json: { status: "pending", amount_usdc: amount.to_s, to_address: to_address }
+      render json: { status: "confirmed", amount_usdc: amount.to_s, to_address: to_address, tx_hash: tx_hash }
     rescue RuntimeError => e
       render json: { error: e.message }, status: :unprocessable_entity
     end
