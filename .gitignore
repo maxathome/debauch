@@ -10,7 +10,16 @@ api/config/master.key
 # Bot
 bot/node_modules/
 bot/.env
+bot/.env.production
 bot/data/
+
+# Slack
+slack/node_modules/
+slack/.env
+slack/.env.production
+
+# Logs
+logs/
 
 # OS
 .DS_Store
