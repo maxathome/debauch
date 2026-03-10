@@ -1,0 +1,88 @@
+databases:
+  - name: debauch-db
+    databaseName: debauch
+    user: debauch
+    plan: free
+
+services:
+  # Rails API
+  - type: web
+    name: debauch-api
+    env: ruby
+    rootDir: api
+    buildCommand: bundle install && bundle exec rails db:migrate RAILS_ENV=production
+    startCommand: bundle exec rails server -e production
+    plan: starter
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: debauch-db
+          property: connectionString
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: BOT_WALLET_ADDRESS
+        sync: false
+
+  # Slack app
+  - type: web
+    name: debauch-slack
+    env: node
+    rootDir: slack
+    buildCommand: npm install
+    startCommand: node src/index.js
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_BASE_URL
+        sync: false           # set to https://debauch-api.onrender.com/api after first deploy
+      - key: SLACK_SIGNING_SECRET
+        sync: false
+      - key: SLACK_BOT_TOKEN
+        sync: false
+      - key: ALLOWED_CHANNEL_ID
+        sync: false
+      - key: BOT_WALLET_ADDRESS
+        sync: false
+      - key: BOT_WALLET_PRIVATE_KEY
+        sync: false
+      - key: BASE_RPC_URL
+        value: https://mainnet.base.org
+      - key: USDC_CONTRACT_ADDRESS
+        value: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      - key: BET_ESCROW_ADDRESS
+        sync: false
+      - key: PORT
+        value: "3002"
+
+  # Discord bot (background worker — no HTTP, just stays running)
+  - type: worker
+    name: debauch-bot
+    env: node
+    rootDir: bot
+    buildCommand: npm install
+    startCommand: node src/index.js
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_BASE_URL
+        sync: false           # set to https://debauch-api.onrender.com/api after first deploy
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_GUILD_ID
+        sync: false
+      - key: BOT_WALLET_ADDRESS
+        sync: false
+      - key: BOT_WALLET_PRIVATE_KEY
+        sync: false
+      - key: BASE_RPC_URL
+        value: https://mainnet.base.org
+      - key: USDC_CONTRACT_ADDRESS
+        value: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      - key: BET_ESCROW_ADDRESS
+        sync: false
