@@ -56,6 +56,46 @@ module.exports = {
     return res.data;
   },
 
+  async getBets(filter, userId) {
+    const res = await client.get("/bets", { params: { filter, user_id: userId } });
+    return res.data;
+  },
+
+  async createBet(params) {
+    const res = await client.post("/bets", params);
+    return res.data;
+  },
+
+  async getBet(betId) {
+    const res = await client.get(`/bets/${betId}`);
+    return res.data;
+  },
+
+  async updateBetContractId(betId, contractBetId) {
+    const res = await client.patch(`/bets/${betId}/set_contract_id`, { contract_bet_id: contractBetId });
+    return res.data;
+  },
+
+  async acceptBet(betId) {
+    const res = await client.patch(`/bets/${betId}/accept`);
+    return res.data;
+  },
+
+  async declineBet(betId) {
+    const res = await client.patch(`/bets/${betId}/decline`);
+    return res.data;
+  },
+
+  async resolveBet(betId, winnerId) {
+    const res = await client.patch(`/bets/${betId}/resolve`, { winner_id: winnerId });
+    return res.data;
+  },
+
+  async cancelBet(betId) {
+    const res = await client.patch(`/bets/${betId}/cancel`);
+    return res.data;
+  },
+
   async getExpiredPendingBets() {
     const res = await client.get("/bets/expired_pending");
     return res.data;
