@@ -52,6 +52,11 @@ module.exports = {
     return res.data;
   },
 
+  async getBets(filter, userId) {
+    const res = await client.get("/bets", { params: { filter, user_id: userId } });
+    return res.data;
+  },
+
   async createBet(params) {
     const res = await client.post("/bets", params);
     return res.data;

@@ -52,6 +52,11 @@ features:
       description: "Challenge someone to a bet, arbitrated by a third party"
       should_escape: false
 
+    - command: /checkbets
+      url: https://unparceled-johnathan-cardinally.ngrok-free.dev/slack/bets
+      description: "View unresolved bets"
+      should_escape: false
+
 oauth_config:
   scopes:
     bot:

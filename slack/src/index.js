@@ -7,6 +7,7 @@ const balance  = require("./commands/balance");
 const coinflip = require("./commands/coinflip");
 const picknum  = require("./commands/picknum");
 const bet      = require("./commands/bet");
+const bets     = require("./commands/bets");
 const deposit  = require("./commands/deposit");
 const withdraw = require("./commands/withdraw");
 const house    = require("./commands/house");
@@ -15,6 +16,7 @@ const donate   = require("./commands/donate");
 const coinflipInteraction = require("./interactions/coinflip");
 const picknumInteraction  = require("./interactions/picknum");
 const betInteraction      = require("./interactions/bet");
+const betsInteraction     = require("./interactions/bets");
 const depositInteraction  = require("./interactions/deposit");
 const withdrawInteraction = require("./interactions/withdraw");
 
@@ -39,6 +41,7 @@ app.post("/slack/withdraw", verifyChannel, withdraw);
 app.post("/slack/house",    verifyChannel, house);
 app.post("/slack/donate",   verifyChannel, donate);
 app.post("/slack/bet",      verifyChannel, bet);
+app.post("/slack/checkbets", verifyChannel, bets);
 
 // Interactive component handler
 app.post("/slack/interact", async (req, res) => {
@@ -65,6 +68,10 @@ app.post("/slack/interact", async (req, res) => {
         await betInteraction.onResolve(payload, action, "p2");
       } else if (action.action_id === "bet_cancel") {
         await betInteraction.onCancel(payload, action);
+      } else if (action.action_id === "bets_filter_mine" || action.action_id === "bets_filter_all" || action.action_id === "bets_filter_others") {
+        await betsInteraction.onFilter(payload, action);
+      } else if (action.action_id === "bets_post_bet") {
+        await betsInteraction.onPostBet(payload, action);
       }
     } catch (err) {
       console.error("[interact] Error handling action:", err.message, err.response?.data);
